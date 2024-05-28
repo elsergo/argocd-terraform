@@ -1,14 +1,27 @@
-#----------------------------------------------------------------
+## Argo CD configuration
+## Ref: https://github.com/argoproj/argo-cd
+##
+
+## Highly Available mode with autoscaling require minimum 3 nodes!
+
+
+## Globally shared configuration
 global:
   domain: argocd.home.sergeysidorenko.com
 
-# Highly Available mode with autoscaling require minimum 3 nodes!
+
+## Redis-HA subchart replaces custom redis deployment when `redis-ha.enabled=true`
+# Ref: https://github.com/DandyDeveloper/charts/blob/master/charts/redis-ha/values.yaml
 redis-ha:
   enabled: true
 
+
+## Application controller
 controller:
   replicas: 1
 
+
+## Server
 server:
   autoscaling:
     enabled: true
@@ -21,23 +34,34 @@ server:
     hostname: "argocd.home.sergeysidorenko.com"
     tls: false
 
-  # Fixing issue with Stuck Processing for Ingress resource
-  config:
+
+## Argo Configs
+configs:
+  # General Argo CD configuration
+  ## Ref: https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/argocd-cm.yaml
+  cm:
+    # Fixing issue with Stuck Processing for Ingress resource
     resource.customizations: |
       networking.k8s.io/Ingress:
         health.lua: |
           hs = {}
           hs.status = "Healthy"
-          return hs       
+          return hs
 
-configs:
+  # Argo CD configuration parameters
+  ## Ref: https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/argocd-cmd-params-cm.yaml
   params:
+    # Argo CD works on http 80 port
     server.insecure: true
 
+
+## Repo Server
 repoServer:
   autoscaling:
     enabled: true
     minReplicas: 2
 
+
+## ApplicationSet controller
 applicationSet:
   replicas: 2
