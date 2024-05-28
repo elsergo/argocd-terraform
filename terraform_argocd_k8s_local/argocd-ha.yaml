@@ -1,4 +1,7 @@
 #----------------------------------------------------------------
+global:
+  domain: argocd.home.sergeysidorenko.com
+
 # Highly Available mode with autoscaling require minimum 3 nodes!
 redis-ha:
   enabled: true
@@ -11,6 +14,26 @@ server:
     enabled: true
     minReplicas: 2
 
+  # Argo CD server ingress configuration
+  ingress:
+    enabled: true
+    ingressClassName: "nginx"
+    hostname: "argocd.home.sergeysidorenko.com"
+    tls: false
+
+  # Fixing issue with Stuck Processing for Ingress resource
+  config:
+    resource.customizations: |
+      networking.k8s.io/Ingress:
+        health.lua: |
+          hs = {}
+          hs.status = "Healthy"
+          return hs       
+
+configs:
+  params:
+    server.insecure: true
+
 repoServer:
   autoscaling:
     enabled: true
@@ -18,13 +41,3 @@ repoServer:
 
 applicationSet:
   replicas: 2
-#----------------------------------------------------------------
-# Fixing issue with Stuck Processing for Ingress resource
-server:
-  config:
-    resource.customizations: |
-      networking.k8s.io/Ingress:
-        health.lua: |
-          hs = {}
-          hs.status = "Healthy"
-          return hs        
